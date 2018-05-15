@@ -2,7 +2,7 @@ import { registerParentPlugin, getSubPlugins } from 'hyper-plugin-extend'
 import { PlayerManager } from './PlayerManager'
 import { FooterFactory } from './components/Footer'
 
-const parentPluginName = 'hyper-media'
+const parentPluginName = 'hyper-media-control'
 
 var onRendererWindow = registerParentPlugin(parentPluginName)
 

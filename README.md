@@ -39,7 +39,7 @@ Name and Description | Downloads
 
 ## Development
 
-This package relies on [`hyper-plugin-extend`](https://github.com/OrionNebula/hyper-plugin-extend) for integrating with control plugins. The parent plugin name is `hyper-media`.
+This package relies on [`hyper-plugin-extend`](https://github.com/OrionNebula/hyper-plugin-extend) for integrating with control plugins. The parent plugin name is `hyper-media-control`.
 
 To create a media control plugin, create a class that derives from `EventEmitter` and contains the following events / methods:
 
