@@ -1,8 +1,8 @@
-# hyper-media
+# hyper-media-control
 
-[![License](https://img.shields.io/github/license/OrionNebula/hyper-media.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/OrionNebula/hyper-media-control.svg)](LICENSE)
 [![hyper](https://img.shields.io/badge/Hyper-v2.0.0-brightgreen.svg)](https://github.com/zeit/hyper/releases/tag/2.0.0)
-[![GitHub issues](https://img.shields.io/github/issues/OrionNebula/hyper-media.svg)](https://github.com/OrionNebula/hyper-media/issues)
+[![GitHub issues](https://img.shields.io/github/issues/OrionNebula/hyper-media-control.svg)](https://github.com/OrionNebula/hyper-media-control/issues)
 
 > Extensible media player controller for [Hyper](https://hyper.is).
 Displays the song currently playing in your media player at the bottom of the terminal and allows you to control your favorite music.
@@ -11,7 +11,7 @@ This is an empty shell for media player control. You must install another plugin
 
 ## Installation
 
-Add `hyper-media` to your Hyper configuration, plus any control plugins you want.
+Add `hyper-media-control` to your Hyper configuration, plus any control plugins you want.
 
 ## Configuration
 
@@ -45,7 +45,7 @@ To create a media control plugin, create a class that derives from `EventEmitter
 
 Method / Event Name | Description
 ----------- | -----------
-`constructor(playerManager, config)` | Constructs a new instance of this player controller. The first argument is the PlayerManager instance from `hyper-media`. The second argument is the `hyperMedia` object from config in .hyper.js.
+`constructor(playerManager, config)` | Constructs a new instance of this player controller. The first argument is the PlayerManager instance from `hyper-media-control`. The second argument is the `hyperMedia` object from config in .hyper.js.
 `playerName()` | Returns the name of the player. By convention, this is all lowercase.
 `iconUrl()` | Returns a URL to the icon for the player. This should be 64x64 pixels.
 `activate()` | Activates the player, enabling it to return events.
@@ -67,7 +67,7 @@ Method / Event Name | Description
 }
 ```
 
-The following methods are not required, but when implemented, enable `hyper-media` to control playback.
+The following methods are not required, but when implemented, enable `hyper-media-control` to control playback.
 
 Method Name | Description
 ----------- | -----------
