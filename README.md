@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/github/license/OrionNebula/hyper-media-control.svg)](LICENSE)
 [![hyper](https://img.shields.io/badge/Hyper-v2.0.0-brightgreen.svg)](https://github.com/zeit/hyper/releases/tag/2.0.0)
 [![GitHub issues](https://img.shields.io/github/issues/OrionNebula/hyper-media-control.svg)](https://github.com/OrionNebula/hyper-media-control/issues)
+[![hyper-media-control](https://img.shields.io/npm/dw/hyper-media-control.svg)](https://npmjs.com/hyper-media-control)
 
 > Extensible media player controller for [Hyper](https://hyper.is).
 Displays the song currently playing in your media player at the bottom of the terminal and allows you to control your favorite music.
@@ -34,8 +35,12 @@ module.exports = {
 
 Here's a list of known control plugins. Submit a pull request if you create one!
 
-Name and Description | Downloads
--------------------- | ---------
+Name | Description | Downloads
+---- | ----------- | ---------
+hyper-media-control-gpmdp | Connect to [GPMDP](https://www.googleplaymusicdesktopplayer.com/) | [![hyper-media-control-gpmdp](https://img.shields.io/npm/dw/hyper-media-control-gpmdp.svg)](https://npmjs.com/hyper-media-control-gpmdp)
+hyper-media-control-vlc | Connect to VLC Media Player | [![hyper-media-control-vlc](https://img.shields.io/npm/dw/hyper-media-control-vlc.svg)](https://npmjs.com/hyper-media-control-vlc)
+hyper-media-control-foobar2000-httpcontrol | Connect to foobar2000 via the foo_httpcontrol component. | [![hyper-media-control-foobar2000-httpcontrol](https://img.shields.io/npm/dw/hyper-media-control-foobar2000-httpcontrol.svg)](https://npmjs.com/hyper-media-control-foobar2000-httpcontrol)
+hyper-media-control-upnp | Connect to UPNP devices on your network. | [![hyper-media-control-upnp](https://img.shields.io/npm/dw/hyper-media-control-upnp.svg)](https://npmjs.com/hyper-media-control-upnp)
 
 ## Development
 
