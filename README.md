@@ -79,3 +79,7 @@ Method Name | Description
 `playPause()` | Toggles playback. Returns a `Promise` for a `Status` object.
 `nextTrack()` | Moves playback to the next track. Returns a `Promise` for a `Status` object.
 `previousTrack()` | Moves playback to the previous track. Returns a `Promise` for a `Status` object.
+
+## Special Thanks
+
+Special thanks to [@panz3r](https://github.com/panz3r) and his Hyper plugin [`hyper-spotify`](https://github.com/panz3r/hyper-spotify) for inspiring me to create this plugin. I learned a lot about React and Hyper studying his code. Go give him a star/follow!
