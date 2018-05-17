@@ -15,8 +15,9 @@ export class PlayerManager extends EventEmitter {
 
     console.log(`Loaded ${this.plugins.length} media plugins.`)
 
-    if (!config.default) this.setActivePlugin(this.plugins[0])
-    else this.setActivePlugin(this.plugins.find(x => x.playerName() === config.default))
+    var maybeDefault = this.plugins.find(x => x.playerName() === config.default)
+    if (!config.default || !maybeDefault) this.setActivePlugin(this.plugins[0])
+    else this.setActivePlugin(maybeDefault)
   }
 
   setActivePlugin (newPlugin) {
