@@ -10,6 +10,8 @@ Displays the song currently playing in your media player at the bottom of the te
 
 This is an empty shell for media player control. You must install another plugin for the media player of your choice.
 
+![hyper-media-control](Preview.png)
+
 ## Installation
 
 Add `hyper-media-control` to your Hyper configuration, plus any control plugins you want.
