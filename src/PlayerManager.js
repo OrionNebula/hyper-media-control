@@ -3,6 +3,11 @@ import { EventEmitter } from 'events'
 export class PlayerManager extends EventEmitter {
   constructor (pluginClasses, config) {
     super()
+    this.config = Object.assign({
+      default: undefined,
+      autoPause: false,
+      autoResume: false
+    }, config || {})
     this.plugins = []
     pluginClasses.forEach(PluginClass => {
       var obj = new PluginClass(this, config)

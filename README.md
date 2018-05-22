@@ -26,6 +26,8 @@ module.exports = {
         ...
         hyperMedia : {
             showArtwork: true, // True if artwork should appear in the bottom right corner.
+            autoPause: false, // If true, will attempt to pause when you switch away from a player.
+            autoResume: false, // If true, will attempt to resume when you switch to a new player.
             // Control plugins will place their config here.
         }
         ...
