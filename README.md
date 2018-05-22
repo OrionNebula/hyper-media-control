@@ -43,6 +43,7 @@ hyper-media-control-gpmdp | Connect to [GPMDP](https://www.googleplaymusicdeskto
 hyper-media-control-vlc | Connect to VLC Media Player | [![hyper-media-control-vlc](https://img.shields.io/npm/dw/hyper-media-control-vlc.svg)](https://npmjs.com/hyper-media-control-vlc)
 hyper-media-control-foobar2000-httpcontrol | Connect to foobar2000 via the foo_httpcontrol component. | [![hyper-media-control-foobar2000-httpcontrol](https://img.shields.io/npm/dw/hyper-media-control-foobar2000-httpcontrol.svg)](https://npmjs.com/hyper-media-control-foobar2000-httpcontrol)
 hyper-media-control-upnp | Connect to UPNP devices on your network. | [![hyper-media-control-upnp](https://img.shields.io/npm/dw/hyper-media-control-upnp.svg)](https://npmjs.com/hyper-media-control-upnp)
+hyper-media-control-spotify-local | Connect to Spotify via the local web server. | [![hyper-media-control-spotify-local](https://img.shields.io/npm/dw/hyper-media-control-spotify-local.svg)](https://npmjs.com/hyper-media-control-spotify-local)
 
 ## Development
 
