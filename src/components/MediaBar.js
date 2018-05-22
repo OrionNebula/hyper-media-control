@@ -11,6 +11,7 @@ const MediaBarFactory = React => {
     constructor (props) {
       super(props)
 
+      this.newLoad = false
       const { playerManager, hyperMedia } = this.props
 
       this.hyperMedia = Object.assign({ showArtwork: true }, hyperMedia || {})
@@ -24,11 +25,18 @@ const MediaBarFactory = React => {
     }
 
     componentDidMount () {
-      const { playerManager } = this.props
+      const { playerManager, playerManager: { config } } = this.props
 
       playerManager.on('newPlugin', newPlugin => {
         this.setState({ plugin: newPlugin, status: { isRunning: false } })
-        newPlugin.on('status', status => this.setState({ status }))
+        newPlugin.on('status', status => {
+          const { plugin } = this.state
+          if (this.newLoad && config.autoResume && status.isRunning && status.state !== 'playing' && status.track.name) {
+            this.newLoad = false
+            plugin.playPause()
+          }
+          this.setState({ status })
+        })
       })
     }
 
@@ -39,7 +47,7 @@ const MediaBarFactory = React => {
       if (status.isRunning) {
         return <div style={mediaBarStyle}>
           <div style={buttonBlockStyle}>
-            { playerManager.plugins.length > 1 ? <Button title={plugin.playerName()} click={() => { playerManager.setActivePlugin(playerManager.plugins[(playerManager.plugins.indexOf(plugin) + 1) % playerManager.plugins.length]) }} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} /> : ''}
+            { playerManager.plugins.length > 1 ? <Button title={plugin.playerName()} click={() => { this.cyclePlugin() }} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} /> : ''}
             { plugin['changeLibrary'] && <Button click={() => plugin.changeLibrary()} iconUrl={iconUrls.libraryIconUrl} style={{ marginRight: 10 }} />}
             <Button click={plugin.previousTrack && (() => plugin.previousTrack().then(newStatus => this.setState({status: newStatus})))} iconUrl={iconUrls.previousIconUrl} />
             <Button style={{marginLeft: 6, marginRight: 6}} click={plugin.playPause && (() => plugin.playPause().then(newStatus => this.setState({status: newStatus})))} iconUrl={status.state === 'playing' ? iconUrls.pauseIconUrl : iconUrls.playIconUrl} />
@@ -52,9 +60,34 @@ const MediaBarFactory = React => {
 
       return <div style={mediaBarStyle}>
         <div style={buttonBlockStyle}>
-          <Button title={plugin.playerName()} click={() => { playerManager.setActivePlugin(playerManager.plugins[(playerManager.plugins.indexOf(plugin) + 1) % playerManager.plugins.length]) }} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} />
+          <Button title={plugin.playerName()} click={() => { this.cyclePlugin() }} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} />
         </div>
       </div>
+    }
+
+    cyclePlugin () {
+      const {
+        playerManager,
+        playerManager:
+        {
+          config
+        }
+      } = this.props
+
+      const {
+        plugin,
+        status
+      } = this.state
+
+      // Only cycle if there's another plugin to switch to.
+      if (playerManager.plugins.length <= 1) return
+
+      if (config.autoPause && status.isRunning && status.state === 'playing') {
+        plugin.playPause()
+      }
+
+      this.newLoad = true
+      playerManager.setActivePlugin(playerManager.plugins[(playerManager.plugins.indexOf(plugin) + 1) % playerManager.plugins.length])
     }
   }
 }
