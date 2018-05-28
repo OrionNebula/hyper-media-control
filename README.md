@@ -28,6 +28,7 @@ module.exports = {
             showArtwork: true, // True if artwork should appear in the bottom right corner.
             autoPause: false, // If true, will attempt to pause when you switch away from a player.
             autoResume: false, // If true, will attempt to resume when you switch to a new player.
+            shuffleRepeat: true, // If true, will show the shuffle / repeat buttons on the bottom bar.
             // Control plugins will place their config here.
         }
         ...
@@ -46,6 +47,7 @@ hyper-media-control-vlc | Connect to VLC Media Player | [![hyper-media-control-v
 hyper-media-control-foobar2000-httpcontrol | Connect to foobar2000 via the foo_httpcontrol component. | [![hyper-media-control-foobar2000-httpcontrol](https://img.shields.io/npm/dw/hyper-media-control-foobar2000-httpcontrol.svg)](https://npmjs.com/hyper-media-control-foobar2000-httpcontrol)
 hyper-media-control-upnp | Connect to UPNP devices on your network. | [![hyper-media-control-upnp](https://img.shields.io/npm/dw/hyper-media-control-upnp.svg)](https://npmjs.com/hyper-media-control-upnp)
 hyper-media-control-spotify-local | Connect to Spotify via the local web server. | [![hyper-media-control-spotify-local](https://img.shields.io/npm/dw/hyper-media-control-spotify-local.svg)](https://npmjs.com/hyper-media-control-spotify-local)
+hyper-media-control-cast | Connect to Google Cast devices on your network. | [![hyper-media-control-cast](https://img.shields.io/npm/dw/hyper-media-control-cast.svg)](https://npmjs.com/hyper-media-control-cast)
 
 ## Development
 
@@ -68,6 +70,9 @@ Method / Event Name | Description
     isRunning: true | false, // True if the player this is intended to control is running. False otherwise.
     state: 'playing' | 'paused' | 'stopped', // The state of playback.
     progress: 3000, // Progress through the track, in milliseconds. This field is optional.
+    repeat: 'one' | 'all' | 'none', // The player's repeat setting. This field is optional.
+    shuffle: true | false, // The player's shuffle status. This field is optional.
+    volume: 0.5, // The player's volume setting, as a fraction of 1. This field is currently unused.
     track: { // The currently playing track.
         name: 'name', // The playing track's name.
         artist: 'artist', // The playing track's artist.
@@ -81,9 +86,12 @@ The following methods are not required, but when implemented, enable `hyper-medi
 
 Method Name | Description
 ----------- | -----------
-`playPause()` | Toggles playback. Returns a `Promise` for a `Status` object.
-`nextTrack()` | Moves playback to the next track. Returns a `Promise` for a `Status` object.
-`previousTrack()` | Moves playback to the previous track. Returns a `Promise` for a `Status` object.
+`playPause()` | Toggles playback. Can optionally return a `Promise` for a `Status` object.
+`nextTrack()` | Moves playback to the next track. Can optionally return a `Promise` for a `Status` object.
+`previousTrack()` | Moves playback to the previous track. Can optionally return a `Promise` for a `Status` object.
+`toggleRepeat()` | Cycle through available repeat modes. Can optionally return a `Promise` for a `Status` object.
+`toggleShuffle()` | Toggles shuffling. Can optionally return a `Promise` for a `Status` object.
+`changeLibrary()` | Attempts to move to the next available library, allowing the user to cycle through possible control targets. Return value is not used.
 
 ## Special Thanks
 

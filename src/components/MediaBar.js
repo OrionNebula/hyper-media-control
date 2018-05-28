@@ -12,9 +12,9 @@ const MediaBarFactory = React => {
       super(props)
 
       this.newLoad = false
-      const { playerManager, hyperMedia } = this.props
+      const { playerManager } = this.props
 
-      this.hyperMedia = Object.assign({ showArtwork: true }, hyperMedia || {})
+      this.hyperMedia = playerManager.config
 
       this.state = {
         plugin: this.props.playerManager.currentPlugin,
@@ -31,9 +31,9 @@ const MediaBarFactory = React => {
         this.setState({ plugin: newPlugin, status: { isRunning: false } })
         newPlugin.on('status', status => {
           const { plugin } = this.state
-          if (this.newLoad && config.autoResume && status.isRunning && status.state !== 'playing' && status.track.name) {
+          if (this.newLoad && config.autoResume && status.isRunning && status.track.name) {
             this.newLoad = false
-            plugin.playPause()
+            if (status.state !== 'playing') plugin.playPause()
           }
           this.setState({ status })
         })
@@ -47,11 +47,13 @@ const MediaBarFactory = React => {
       if (status.isRunning) {
         return <div style={mediaBarStyle}>
           <div style={buttonBlockStyle}>
-            { playerManager.plugins.length > 1 ? <Button title={plugin.playerName()} click={() => { this.cyclePlugin() }} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} /> : ''}
-            { plugin['changeLibrary'] && <Button click={() => plugin.changeLibrary()} iconUrl={iconUrls.libraryIconUrl} style={{ marginRight: 10 }} />}
-            <Button click={plugin.previousTrack && (() => plugin.previousTrack().then(newStatus => this.setState({status: newStatus})))} iconUrl={iconUrls.previousIconUrl} />
-            <Button style={{marginLeft: 6, marginRight: 6}} click={plugin.playPause && (() => plugin.playPause().then(newStatus => this.setState({status: newStatus})))} iconUrl={status.state === 'playing' ? iconUrls.pauseIconUrl : iconUrls.playIconUrl} />
-            <Button click={plugin.nextTrack && (() => plugin.nextTrack().then(newStatus => this.setState({status: newStatus})))} iconUrl={iconUrls.nextIconUrl} />
+            { playerManager.plugins.length > 1 ? <Button title={plugin.playerName()} click={() => this.cyclePlugin()} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} /> : ''}
+            { plugin.changeLibrary && <Button click={() => plugin.changeLibrary()} iconUrl={iconUrls.libraryIconUrl} style={{ marginRight: 10 }} />}
+            { this.hyperMedia.shuffleRepeat ? <Button title={'Shuffle'} style={{marginRight: 6}} click={plugin.toggleShuffle && (() => this.handleActionResult(plugin.toggleShuffle()))} iconUrl={status.shuffle ? iconUrls.shuffleOnIconUrl : iconUrls.shuffleOffIconUrl} /> : ''}
+            <Button title={'Previous'} click={plugin.previousTrack && (() => this.handleActionResult(plugin.previousTrack()))} iconUrl={iconUrls.previousIconUrl} />
+            <Button title={'Play/Pause'} style={{marginLeft: 6, marginRight: 6}} click={plugin.playPause && (() => this.handleActionResult(plugin.playPause()))} iconUrl={status.state === 'playing' ? iconUrls.pauseIconUrl : iconUrls.playIconUrl} />
+            <Button title={'Next'} click={plugin.nextTrack && (() => this.handleActionResult(plugin.nextTrack()))} iconUrl={iconUrls.nextIconUrl} />
+            { this.hyperMedia.shuffleRepeat ? <Button title={'Repeat'} style={{marginLeft: 6}} click={plugin.toggleRepeat && (() => this.handleActionResult(plugin.toggleRepeat()))} iconUrl={status.repeat === 'none' ? iconUrls.repeatOffIconUrl : (status.repeat === 'one' ? iconUrls.repeatOnceIconUrl : iconUrls.repeatOnIconUrl)} /> : ''}
           </div>
           { status.state !== 'stopped' ? <TrackInfo status={status} /> : ''}
           { this.hyperMedia.showArtwork && status.track && status.track.coverUrl && <img src={status.track.coverUrl} style={Object.assign(artworkStyle, { width: this.hyperMedia.artworkWidth || artworkStyle.width })} />}
@@ -60,9 +62,20 @@ const MediaBarFactory = React => {
 
       return <div style={mediaBarStyle}>
         <div style={buttonBlockStyle}>
-          <Button title={plugin.playerName()} click={() => { this.cyclePlugin() }} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} />
+          <Button title={plugin.playerName()} click={() => this.cyclePlugin()} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} />
         </div>
       </div>
+    }
+
+    handleActionResult (result) {
+      if (result instanceof Promise) {
+        result.then(status => {
+          if (!status) return
+          this.setState({ status })
+        }).catch(() => {
+          this.setState({ status: { isRunning: false } })
+        })
+      }
     }
 
     cyclePlugin () {
@@ -124,7 +137,7 @@ const iconUrls = {
   shuffleOnIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAI8SURBVHic7ZpLbtswEEBfAhTdBDlBbuI2ySZw6nzsTW7gnCFbXSjbXCEX6SpFN27RNkGLZCETUAxyZEkckq7mAV5J5Ggeh7QoCQzDMAzDMIxxsjeg7RHwNdaFeDgEpj3bPqJ7bdwCv4FrzSDAHfDa43ejeVG3wL91oGfKlKAmoJm8+5UoQUXAEXXZ+wL+AS40gjaoArGTVsCUsISSKkF1DfhCPeI5KmEO/A3ETiYA2ithrhBzRlh8cgGQVkKX5JMJAHk6PANXEWLM1335YoSmQzIBoFsJ0si/AAv8C2NSAdAuYdGjTyn5zT43JSQXAHEltE0tX19NCVkEQBwJfZJ3OAnZBIBcut+pd3khrgkveNveaFVkFgB+CSvgk9AmRvIOSXIymtPhJ3AqnDuk7ItmCnwDToRz2pLXuKtMyoFw7Ip4Zb9z/PcjLzH65FPvJIvBkmekyZ8z4uQvkRe8S6FtEXd0Q2gbeel/fkK9d9jZu8Chya94/+Bjp7hAfnIslf1n4AfD1omsU2dI8gfAU6DtthIqMm6Hh5S945h69+jro206VGR8IBIjeUcfCVXjnOQCYibv6CKh2jieVIBG8o5tJFSeY8kESM//Yr0nPAN+BWJkfTGiOfKbSJWQRUDK5B1dJKgKaCv7mWLsM+q5H03AfscLmAL3wEfPsZd14IeOfXZhAnxQ7F+k7RMZzZGHQj6RWeL/SCrGa3CJiu2TV18DmhJKTD7Jv8CSejqUmHwnAfaprGEYhmEYhjFS3gDp7WViipKTzAAAAABJRU5ErkJggg==',
   shuffleOffIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAFsSURBVHic7Zm9SsVAEEaPP90VwVZ8Ai1ttLG9irU+iKWVbyPYCjaCpbHQh/ARDPZaBOEWK9zdTNz7rd+BNIGZ7J7MTCALxhhjjDHGmP/IRu0FZHAG7ALvkUnXI5NNzBbwAJxEJlUSADAjWIKaAAiWoCgAAiWoCoAgCZuFccfA3pgHF3CUuDcD7oFToPvLxdwBXyt0fVJYCcotsEhxO7QiAAYJ17lBLQnogMvcoFYEdAyDsK+9kCm5ID0An4Ht0qTqFTD6zSsLCCl7VQFhPa8oIHTgqQl4A85pfNr/xgEjpr0x+kzSAkpDcB94AnYikyoJADgEHgmUoCYAgiUoCoBACaoCIEiCsgCYYCYsy6r9FH2lUIJ6BfxQXAmtCIBBwm1uUEsCeuAmN6gVAT0wB15yA9cKH1jraOwqcb+nwtFYDVJ/hT9InxkujXILFJf9IqoCQjYPmgLCNg96AkI3r8ac4etjjDHGGGOMMaP5BpfDg3zyzsv8AAAAAElFTkSuQmCC',
   repeatOffIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAKNSURBVHic7ZqvbxRBFMc/9FBoHFUIkormBKoCc6opCQTZf+BUU3uSqSBBA4K6tvIqKrC4CjSyvglJSTDlVzCHKJtsLjPb3Zk3817pfJM1O7l93/nsm9k3MwdVVVVVVTdOG9oGtDUHXmub0NQcWHCLITQAbi2ENoDsEB4Ad3IGiNAygAXgcgRaA74A+9iC4AMgnglj4Gvr4ZYghAAMhnA3cH8MfATut+5NgT/A7r9Ay3oBbA8JnqCuOmAG/CZxSEyAH/gJv8WfCSPgKPAbjSsJAMAT4DLw8NBwWAEODHRebE6IhXBooPML4GUqgFgIIwMQenW+76w+AT4A9zxt7/BPjCPgFfCwZ4wh2gBWO9r3yFAXxGRCLnV9BkXSPiQrEEIAsna+kQUIPgBFOt/o2GOguUJ1gqSWAbjM8a41UDoT2vGLvnmfAQ0ITXyVzrcNaEGYo9j5xkDfgiTHnKC+KeoDcMbwBZS6VgSf9RnYBL572naA9xiEEGvIV4qeA5+IK5v/O1koltRVIVAhAMYhlAouPTF2TcJmJZkJvjpkHmNKsg64TqfAFv46YYpSnSAJoE95ego8B3562qbAG27oxOgYloKpw0FsCEjIRRpIgWAGgEs0EHMCBVcHHuoAnJABqXOHogAcsm9AAkIxAA6/0VQDsRAOhOL3kgsYlDKQciAbFX/IN9fRvQ8nVYqOgUeBtq5juGfAiUB8rxz99wBzX8UXUE64A6Yg9CmFf0kEElbxtcMM/beeJRMsToIhPcXARmtXJuT+DpvZWQpBKFGImIZQqhQ1C6HkYsQMBIcOAAgvpS/o/gOVuJpM0NiQWM6EC2BdwQcz9LakGgjfgMdKHgDdM/sJV4uoqqqqqqoh+gtPa5+7K3kKkgAAAABJRU5ErkJggg==',
-  repeatOnIconeUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAGdSURBVHic7ZmxUcQwEAAXhoQeqICUBLdFYjKOjI/ow41AIfQAGST/Aw9+Icknyyfdzng++LGsW0vnkwSO4ziOOYbaHajNBDzV7kRNJuCTjiUcBHQr4aeALiX8FtCdhDkBXUk4JSBZwkVmB+6A28x7NQjVASPwAUjJDoTewFauqJFwninAAiMREloWAPBeqmELU+AhJpDcJDjHG/Ci2F6IAbgK/P+4v4oxNwKmkg+MeH7Smz/QWg4QEt98SwKEjGHfigAhc863IEBYkPCsCxAWZnvLAgSFT51mHbAmzyjVHFZHgFrBZVWAGmeZ982VomuWwo7jOCrkJsHadJ+E1fYjuq8DNAWYPLPXWgsIcI3BOagxAoTEfbgtsVSAYDh4WCZAMB485AsQGgge8gQIjQQP6QKEhoKHtM+gEA5+YL3TodVrDqH+Yed/VzH5FoIvuhYodsa+BWIE7ID70h2pRWwS3AGXhJNg7fX46xoPGamQhLbGKQndCIB5CV0JgL8SuhMAxxK6FADfEkwK0NgS2+1/bxTaMo3JTVHHcZyu+QKBGRR3y2FEMQAAAABJRU5ErkJggg==',
+  repeatOnIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAGdSURBVHic7ZmxUcQwEAAXhoQeqICUBLdFYjKOjI/ow41AIfQAGST/Aw9+Icknyyfdzng++LGsW0vnkwSO4ziOOYbaHajNBDzV7kRNJuCTjiUcBHQr4aeALiX8FtCdhDkBXUk4JSBZwkVmB+6A28x7NQjVASPwAUjJDoTewFauqJFwninAAiMREloWAPBeqmELU+AhJpDcJDjHG/Ci2F6IAbgK/P+4v4oxNwKmkg+MeH7Smz/QWg4QEt98SwKEjGHfigAhc863IEBYkPCsCxAWZnvLAgSFT51mHbAmzyjVHFZHgFrBZVWAGmeZ982VomuWwo7jOCrkJsHadJ+E1fYjuq8DNAWYPLPXWgsIcI3BOagxAoTEfbgtsVSAYDh4WCZAMB485AsQGgge8gQIjQQP6QKEhoKHtM+gEA5+YL3TodVrDqH+Yed/VzH5FoIvuhYodsa+BWIE7ID70h2pRWwS3AGXhJNg7fX46xoPGamQhLbGKQndCIB5CV0JgL8SuhMAxxK6FADfEkwK0NgS2+1/bxTaMo3JTVHHcZyu+QKBGRR3y2FEMQAAAABJRU5ErkJggg==',
   repeatOnceIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAHzSURBVHic7Zo9UgIxFIA/HRvvYGdnqQ3MUHgAW72HNtj57KTiAp4AjuAB8CDcQTstgBFhWbIvbzebn29mh2GZTfK+JG8zCVAoFAqF6BiGbkBoZsBb6EaEZAb8kLGEjYBsJWwLyFLCroDsJFQJyErCIQGNJZwpG/AEDJTPWlC3DhgD34C02YC6HujL5TQSTpUCYmCMg4SUBQB8tVVwDFPgxSUQbRKsYgksDMurYwhc1Pz+ur5ao2oEzNqs0KH+Rj2/IbUcIDTs+ZQECIphn4oAQTnnUxAgeCS8kAJGwAd+SVTwzPaWr0FXRqxWaXee5QgGr7ouBVwC78CtQVlTjNYcXU6Ba2yCB8MFVwpJ0AvtFJgC8517yyPPLICHre8DVvsKQdEK0AzBJfvSgpP9FCgCQjcgNCEWQhZU7Qeo9iNiFfAI3O/cm6MQkP0UsBQQ5Zm91RQQ4Iru9gTNsBgBQsN9uD7hOwIEffBz4MSzfm98RoAQcc9v0AoQEggedAKERIKH5gKEhIKHZklQqA9+SHenQ52vOYTwh53HrtbkxxC8WoBLDmjtjL0PuAiYAM9tNyQUrklwApxTnwS7/H9AFZ9dVDImQBLqG4ckZCMAqiVkJQD2JWQnAP5LyFIA/EmIUoDFlthk/XljUFbURLkpWigUClnzC1V6HG3T6dDGAAAAAElFTkSuQmCC',
   libraryIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAJnSURBVHic7Zu/SxxBFMc/l1PBUhIIYhptLcSoRUohTSoLExsrC0uxCzYRIghWluY/EGKsQiBNtLYKeDYBxaQLsVDQQtBELeYIp86Ezd2b9+bY+cAgzO6+/c6XnV/vRshkMpkSUxGMVQUmgHHgsWDcZrgEvgMfgF2NFw7UX3SdWLkC1oDOeE2HHuAwgcb+q7yL1npgOYEGFvkShnziHwgYMCkQIzYVAjolDOgXiKHBgK9SwoAugRgaeHVKGNDWdFgLCLAK7BS8d6OVF6VqwA5uEROd0neBkAEb3J9LW/rUUqX0X0CqY0Ajr2IGbwcDona90neBbIC1AGuyAdYCrCm9AdbT4DGwB5wAvcBTIufv7mJlwD6wAHwEfjfU9wBzwLmWEAsDvuDSU6eeayfAkqYY7TFgn3DjTdA2YIGEGg+6Bhzj+nxSaBqwy+0BLwk0DThr4pnoGWdNA3qbeKZPXMUdNA0YBh7+5zPPYwhpRNOADtwipyhVYD6Slr9oT4OvgdGC9y4CgxG1APoGdAOfcYcoQlSBt8AbDUEWu8FHwBbwHniBO03ShfuRdRY3XS4ie3oliNVmqAJM1Ysppc8HSBhwLRBDA69OCQOOBGJo8MtXKWHAtkAMDbZ8lRIGrAAXAnFi8hX45LsgYUANmCFdEw5wSZg/votSs8A6MFb/+1MoZitcAN9w6bUR4EfoRsl1QA2YFoynQl4HWAuwJhtgLcCa0CB46al7RpoHpVraUIUMOPTUPSHyeR0LQl1gk/bZ5ERjDftz/kVKNDpx/2lxlUAjoxlQJO00BLzEpaxSPBpvnlXKZDKZtuUGwhAPcYCvUfsAAAAASUVORK5CYII='
 }

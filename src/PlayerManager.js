@@ -5,8 +5,10 @@ export class PlayerManager extends EventEmitter {
     super()
     this.config = Object.assign({
       default: undefined,
+      showArtwork: true,
       autoPause: false,
-      autoResume: false
+      autoResume: false,
+      shuffleRepeat: true
     }, config || {})
     this.plugins = []
     pluginClasses.forEach(PluginClass => {
