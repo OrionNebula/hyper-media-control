@@ -1,6 +1,7 @@
 import { registerParentPlugin, getSubPlugins } from 'hyper-plugin-extend'
 import { PlayerManager } from './PlayerManager'
 import { FooterFactory } from './components/Footer'
+import { BackgroundFactory } from './components/Background'
 
 const parentPluginName = 'hyper-media-control'
 
@@ -8,6 +9,7 @@ var onRendererWindow = registerParentPlugin(parentPluginName)
 
 function decorateHyper (Hyper, { React }) {
   const Footer = FooterFactory(React)
+  const Background = BackgroundFactory(React)
 
   return class extends React.PureComponent {
     constructor (props) {
@@ -21,7 +23,9 @@ function decorateHyper (Hyper, { React }) {
 
       let customInnerChildren = existingInnerChildren ? existingInnerChildren instanceof Array ? existingInnerChildren : [existingInnerChildren] : []
 
-      if (this.playerManager.plugins.length > 0) customInnerChildren = [].concat(customInnerChildren, React.createElement(Footer, { playerManager: this.playerManager, hyperMedia: this.props.hyperMedia }))
+      if (this.playerManager.plugins.length > 0) {
+        customInnerChildren = [].concat(customInnerChildren, React.createElement(Footer, { playerManager: this.playerManager })) // , React.createElement(Background, { playerManager: this.playerManager }))
+      }
 
       return React.createElement(Hyper, Object.assign({}, { customInnerChildren }, this.props))
     }
@@ -61,4 +65,55 @@ function mapHyperState ({ui: { hyperMedia }}, map) {
   })
 }
 
-export { onRendererWindow, decorateHyper, decorateConfig, reduceUI, mapHyperState }
+function decorateMenu (menu) {
+  return menu.map(item => {
+    if (item.label !== 'Plugins') return item
+    const newItem = Object.assign({}, item)
+
+    newItem.submenu = newItem.submenu.concat(
+      {
+        label: 'Hyper Media Control',
+        type: 'submenu',
+        submenu: [
+          {
+            label: 'Previous Track',
+            click: (clickedItem, focusedWindow) => {
+              if (focusedWindow) {
+                focusedWindow.rpc.emit('hyper-media-control:previousTrack', { focusedWindow })
+              }
+            }
+          },
+          {
+            label: 'Play/Pause',
+            accelerator: `CmdOrCtrl+Alt+Space`,
+            click: (clickedItem, focusedWindow) => {
+              if (focusedWindow) {
+                focusedWindow.rpc.emit('hyper-media-control:playPause', { focusedWindow })
+              }
+            }
+          },
+          {
+            label: 'Next Track',
+            click: (clickedItem, focusedWindow) => {
+              if (focusedWindow) {
+                focusedWindow.rpc.emit('hyper-media-control:nextTrack', { focusedWindow })
+              }
+            }
+          },
+          {
+            label: 'Next Media Player',
+            accelerator: `CmdOrCtrl+Shift+Space`,
+            click: (clickedItem, focusedWindow) => {
+              if (focusedWindow) {
+                focusedWindow.rpc.emit('hyper-media-control:nextPlayer', { focusedWindow })
+              }
+            }
+          }
+        ]
+      })
+    return newItem
+  }
+  )
+}
+
+export { onRendererWindow, decorateHyper, decorateConfig, reduceUI, mapHyperState, decorateMenu }

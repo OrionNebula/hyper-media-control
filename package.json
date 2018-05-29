@@ -7,6 +7,7 @@
     "lint": "standard ./src/**.js | snazzy",
     "prebuild": "npm run lint && rimraf ./dist",
     "build": "babel src -d dist",
+    "build:watch": "babel src -d dist --watch",
     "prepublishonly": "npm run build"
   },
   "repository": {

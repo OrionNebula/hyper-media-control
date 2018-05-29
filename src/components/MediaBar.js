@@ -27,6 +27,25 @@ const MediaBarFactory = React => {
     componentDidMount () {
       const { playerManager, playerManager: { config } } = this.props
 
+      window.rpc.on('hyper-media-control:previousTrack', () => {
+        const { plugin } = this.state
+        if (plugin) this.handleActionResult(plugin.previousTrack())
+      })
+
+      window.rpc.on('hyper-media-control:playPause', () => {
+        const { plugin } = this.state
+        if (plugin) this.handleActionResult(plugin.playPause())
+      })
+
+      window.rpc.on('hyper-media-control:nextTrack', () => {
+        const { plugin } = this.state
+        if (plugin) this.handleActionResult(plugin.nextTrack())
+      })
+
+      window.rpc.on('hyper-media-control:nextPlayer', () => {
+        this.cyclePlugin()
+      })
+
       playerManager.on('newPlugin', newPlugin => {
         this.setState({ plugin: newPlugin, status: { isRunning: false } })
         newPlugin.on('status', status => {

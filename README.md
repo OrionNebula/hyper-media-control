@@ -63,6 +63,7 @@ Method / Event Name | Description
 `activate()` | Activates the player, enabling it to return events.
 `deactivate()` | Deactivates the player, shutting down events.
 `status` | Emitted whenever a new status object is available. First argument is a `Status` object describing player status.
+`playlist` | Emitted whenever a new playlist is available. First argument is an array of `Track` objects. This event is currently unused.
 
 `Status` object structure:
 ```js
@@ -73,12 +74,17 @@ Method / Event Name | Description
     repeat: 'one' | 'all' | 'none', // The player's repeat setting. This field is optional.
     shuffle: true | false, // The player's shuffle status. This field is optional.
     volume: 0.5, // The player's volume setting, as a fraction of 1. This field is currently unused.
-    track: { // The currently playing track.
-        name: 'name', // The playing track's name.
-        artist: 'artist', // The playing track's artist.
-        coverUrl: '...' // A URL pointing to this track's album art. This field is optional.
-        duration: 3000 // The total length of the current track, in milliseconds. This field is optional.
-    }
+    track: { ... } // A Track object representing the currently playing track.
+}
+```
+
+`Track` object structure:
+```js
+{
+    name: 'name', // The playing track's name.
+    artist: 'artist', // The playing track's artist.
+    coverUrl: '...' // A URL pointing to this track's album art. This field is optional.
+    duration: 3000 // The total length of the current track, in milliseconds. This field is optional.
 }
 ```
 
