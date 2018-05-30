@@ -7,7 +7,6 @@ import { MediaPlugin } from '../types/MediaPlugin'
 import { Status } from '../types/Status'
 import { State } from '../types/State'
 import { EventEmitter } from 'events'
-import { Promise } from 'es6-promise'
 
 interface MediaBarProps {
   playerManager: PlayerManager
