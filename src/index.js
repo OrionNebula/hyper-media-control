@@ -1,7 +1,7 @@
 import { registerParentPlugin, getSubPlugins } from 'hyper-plugin-extend'
 import { PlayerManager } from './PlayerManager'
 import { FooterFactory } from './components/Footer'
-import { BackgroundFactory } from './components/Background'
+// import { BackgroundFactory } from './components/Background'
 
 const parentPluginName = 'hyper-media-control'
 
@@ -9,7 +9,7 @@ var onRendererWindow = registerParentPlugin(parentPluginName)
 
 function decorateHyper (Hyper, { React }) {
   const Footer = FooterFactory(React)
-  const Background = BackgroundFactory(React)
+  // const Background = BackgroundFactory(React)
 
   return class extends React.PureComponent {
     constructor (props) {
