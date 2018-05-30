@@ -1,13 +1,13 @@
-import BackPlateFactory from './BackPlate'
-import MediaBarFactory from './MediaBar'
+import { BackPlateFactory } from './BackPlate'
+import { MediaBarFactory } from './MediaBar'
 import { PlayerManager } from '../PlayerManager'
-import * as React from 'react'
+import * as ExternReact from 'react'
 
 interface FooterProps {
   playerManager: PlayerManager
 }
 
-function FooterFactory (React: any): React.SFC<FooterProps> {
+function FooterFactory (React: typeof ExternReact): React.SFC<FooterProps> {
   const BackPlate: any = BackPlateFactory(React)
   const MediaBar: any = MediaBarFactory(React)
 
@@ -19,7 +19,7 @@ function FooterFactory (React: any): React.SFC<FooterProps> {
   )
 }
 
-export { FooterFactory }
+export { FooterFactory, FooterProps }
 
 const footerStyle = {
   position: 'absolute',

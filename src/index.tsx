@@ -9,8 +9,6 @@ const parentPluginName = 'hyper-media-control'
 
 const onRendererWindow = registerParentPlugin(parentPluginName)
 
-const initialState = {}
-
 function decorateHyper (Hyper, { React }: { React: typeof ExternReact }): any {
   const Footer = FooterFactory(React)
 
@@ -20,8 +18,6 @@ function decorateHyper (Hyper, { React }: { React: typeof ExternReact }): any {
     constructor (props: any) {
       super(props)
       this.state = {}
-
-      let a = PlayerManager
 
       this.playerManager = new PlayerManager(getSubPlugins(parentPluginName) as MediaPluginConstructor[], this.props.hyperMedia as HyperMediaConfig)
     }
@@ -117,8 +113,7 @@ function decorateMenu (menu) {
         ]
       })
     return newItem
-  }
-  )
+  })
 }
 
 export { onRendererWindow, decorateHyper, decorateConfig, reduceUI, mapHyperState, decorateMenu }
