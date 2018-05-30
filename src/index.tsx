@@ -1,21 +1,29 @@
 import { registerParentPlugin, getSubPlugins } from 'hyper-plugin-extend'
 import { PlayerManager } from './PlayerManager'
+import { HyperMediaConfig } from './types/HyperMediaConfig'
+import { MediaPluginConstructor } from './types/MediaPlugin'
 import { FooterFactory } from './components/Footer'
-// import { BackgroundFactory } from './components/Background'
+import * as ExternReact from 'react'
 
 const parentPluginName = 'hyper-media-control'
 
-var onRendererWindow = registerParentPlugin(parentPluginName)
+const onRendererWindow = registerParentPlugin(parentPluginName)
 
-function decorateHyper (Hyper, { React }) {
+const initialState = {}
+
+function decorateHyper (Hyper, { React }: { React: typeof ExternReact }): any {
   const Footer = FooterFactory(React)
-  // const Background = BackgroundFactory(React)
 
   return class extends React.PureComponent {
-    constructor (props) {
+    playerManager: PlayerManager
+    props: any
+    constructor (props: any) {
       super(props)
+      this.state = {}
 
-      this.playerManager = new PlayerManager(getSubPlugins(parentPluginName), this.props.hyperMedia || {})
+      let a = PlayerManager
+
+      this.playerManager = new PlayerManager(getSubPlugins(parentPluginName) as MediaPluginConstructor[], this.props.hyperMedia as HyperMediaConfig)
     }
 
     render () {
@@ -24,18 +32,17 @@ function decorateHyper (Hyper, { React }) {
       let customInnerChildren = existingInnerChildren ? existingInnerChildren instanceof Array ? existingInnerChildren : [existingInnerChildren] : []
 
       if (this.playerManager.plugins.length > 0) {
-        customInnerChildren = [].concat(customInnerChildren, React.createElement(Footer, { playerManager: this.playerManager })) // , React.createElement(Background, { playerManager: this.playerManager }))
+        customInnerChildren = [].concat(customInnerChildren, <Footer playerManager={this.playerManager}/>)
       }
 
-      return React.createElement(Hyper, Object.assign({}, { customInnerChildren }, this.props))
+      return <Hyper customInnerChildren={customInnerChildren} {...this.props} />
     }
   }
 }
 
 function decorateConfig (config) {
-  return Object.assign({}, config, {
-    css: `
-        ${config.css || ''}
+  return { ...config, css: `
+      ${config.css || ''}
 
         .terms_terms {
           margin-bottom: 30px;
@@ -46,10 +53,10 @@ function decorateConfig (config) {
           opacity: 1 !important
         }
     `
-  })
+  }
 }
 
-function reduceUI (state, {type, config}) {
+function reduceUI (state, { type, config }) {
   switch (type) {
     case 'CONFIG_LOAD':
     case 'CONFIG_RELOAD':
@@ -59,16 +66,14 @@ function reduceUI (state, {type, config}) {
   return state
 }
 
-function mapHyperState ({ui: { hyperMedia }}, map) {
-  return Object.assign({}, map, {
-    hyperMedia: Object.assign({}, hyperMedia)
-  })
+function mapHyperState ({ ui: { hyperMedia } }, map) {
+  return { ...map, hyperMedia: { ...hyperMedia } }
 }
 
 function decorateMenu (menu) {
   return menu.map(item => {
     if (item.label !== 'Plugins') return item
-    const newItem = Object.assign({}, item)
+    const newItem = { ...item }
 
     newItem.submenu = newItem.submenu.concat(
       {

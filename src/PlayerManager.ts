@@ -1,18 +1,18 @@
 import { EventEmitter } from 'events'
+import { HyperMediaConfig, defaultHyperMediaConfig } from './types/HyperMediaConfig'
+import { MediaPlugin, MediaPluginConstructor } from './types/MediaPlugin'
 
 export class PlayerManager extends EventEmitter {
-  constructor (pluginClasses, config) {
+  config: HyperMediaConfig
+  plugins: MediaPlugin[]
+  currentPlugin: MediaPlugin
+
+  constructor (pluginClasses: MediaPluginConstructor[], config: HyperMediaConfig) {
     super()
-    this.config = Object.assign({
-      default: undefined,
-      showArtwork: true,
-      autoPause: false,
-      autoResume: false,
-      shuffleRepeat: true
-    }, config || {})
+    this.config = { ...defaultHyperMediaConfig, ...config }
     this.plugins = []
-    pluginClasses.forEach(PluginClass => {
-      var obj = new PluginClass(this, config)
+    pluginClasses.forEach((PluginClass: MediaPluginConstructor) => {
+      let obj = new PluginClass(this, config)
       if (this.validatePlugin(obj)) {
         this.plugins.push(obj)
       } else {
@@ -22,12 +22,12 @@ export class PlayerManager extends EventEmitter {
 
     console.log(`Loaded ${this.plugins.length} media plugins.`)
 
-    var maybeDefault = this.plugins.find(x => x.playerName() === config.default)
+    let maybeDefault = this.plugins.filter(x => x.playerName() === this.config.default).pop()
     if (!config.default || !maybeDefault) this.setActivePlugin(this.plugins[0])
     else this.setActivePlugin(maybeDefault)
   }
 
-  setActivePlugin (newPlugin) {
+  setActivePlugin (newPlugin: MediaPlugin) {
     if (this.currentPlugin) {
       this.currentPlugin.deactivate()
       this.currentPlugin.removeAllListeners()
@@ -41,7 +41,7 @@ export class PlayerManager extends EventEmitter {
     this.emit('newPlugin', newPlugin)
   }
 
-  validatePlugin (pluginObject) {
+  validatePlugin (pluginObject: MediaPlugin): boolean {
     const requiredFunctions = [
       'playerName',
       'iconUrl',
@@ -49,8 +49,8 @@ export class PlayerManager extends EventEmitter {
       'deactivate'
     ]
 
-    for (var i = 0; i < requiredFunctions.length; i++) {
-      if (!(pluginObject[requiredFunctions[i]] instanceof Function)) {
+    for (let i = 0; i < requiredFunctions.length; i++) {
+      if (!((pluginObject[requiredFunctions[i]]) instanceof Function)) {
         return false
       }
     }
