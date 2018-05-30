@@ -1,58 +1,74 @@
-import ButtonFactory from './Button'
-import TrackInfoFactory from './TrackInfo'
+import { ButtonFactory } from './Button'
+import { TrackInfoFactory } from './TrackInfo'
+import * as ExternReact from 'react'
+import { PlayerManager } from '../PlayerManager'
+import { HyperMediaConfig } from '../types/HyperMediaConfig'
+import { MediaPlugin } from '../types/MediaPlugin'
+import { Status } from '../types/Status'
+import { State } from '../types/State'
+import { EventEmitter } from 'events'
+import { Promise } from 'es6-promise'
 
-const MediaBarFactory = React => {
-  const { Component } = React
+interface MediaBarProps {
+  playerManager: PlayerManager
+}
 
+interface MediaBarState {
+  plugin: MediaPlugin
+  status: Status
+}
+
+function MediaBarFactory (React: typeof ExternReact) {
   const Button = ButtonFactory(React)
   const TrackInfo = TrackInfoFactory(React)
 
-  return class extends Component {
-    constructor (props) {
+  return class extends React.Component<MediaBarProps, MediaBarState> {
+    newLoad: boolean
+    hyperMedia: HyperMediaConfig
+    constructor (props: MediaBarProps) {
       super(props)
 
       this.newLoad = false
-      const { playerManager } = this.props
-
-      this.hyperMedia = playerManager.config
+      this.hyperMedia = props.playerManager.config
 
       this.state = {
         plugin: this.props.playerManager.currentPlugin,
-        status: {isRunning: false, track: {}}
+        status: { isRunning: false, state: State.Stopped }
       }
 
-      playerManager.currentPlugin.on('status', status => this.setState({ status }))
+      this.props.playerManager.currentPlugin.on('status', (status: Status) => this.setState({ status }))
     }
 
     componentDidMount () {
-      const { playerManager, playerManager: { config } } = this.props
+      const { playerManager } = this.props
+      const { rpc }: { rpc: EventEmitter } = window as any
 
-      window.rpc.on('hyper-media-control:previousTrack', () => {
+      rpc.on('hyper-media-control:previousTrack', () => {
         const { plugin } = this.state
         if (plugin) this.handleActionResult(plugin.previousTrack())
       })
 
-      window.rpc.on('hyper-media-control:playPause', () => {
+      rpc.on('hyper-media-control:playPause', () => {
         const { plugin } = this.state
         if (plugin) this.handleActionResult(plugin.playPause())
       })
 
-      window.rpc.on('hyper-media-control:nextTrack', () => {
+      rpc.on('hyper-media-control:nextTrack', () => {
         const { plugin } = this.state
         if (plugin) this.handleActionResult(plugin.nextTrack())
       })
 
-      window.rpc.on('hyper-media-control:nextPlayer', () => {
+      rpc.on('hyper-media-control:nextPlayer', () => {
         this.cyclePlugin()
       })
 
-      playerManager.on('newPlugin', newPlugin => {
-        this.setState({ plugin: newPlugin, status: { isRunning: false } })
-        newPlugin.on('status', status => {
+      playerManager.on('newPlugin', (newPlugin: MediaPlugin) => {
+        this.setState({ plugin: newPlugin, status: { isRunning: false, state: State.Stopped } })
+        newPlugin.on('status', (status: Status) => {
           const { plugin } = this.state
-          if (this.newLoad && config.autoResume && status.isRunning && status.track.name) {
+          if (this.newLoad && this.hyperMedia.autoResume && status.isRunning && status.track && status.track.name) {
             this.newLoad = false
-            if (status.state !== 'playing') plugin.playPause()
+            if (status.state !== State.Playing) this.handleActionResult(plugin.playPause())
           }
           this.setState({ status })
         })
@@ -66,44 +82,42 @@ const MediaBarFactory = React => {
       if (status.isRunning) {
         return <div style={mediaBarStyle}>
           <div style={buttonBlockStyle}>
-            { playerManager.plugins.length > 1 ? <Button title={plugin.playerName()} click={() => this.cyclePlugin()} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} /> : ''}
-            { plugin.changeLibrary && <Button click={() => plugin.changeLibrary()} iconUrl={iconUrls.libraryIconUrl} style={{ marginRight: 10 }} />}
-            { this.hyperMedia.shuffleRepeat ? <Button title={'Shuffle'} style={{marginRight: 6}} click={plugin.toggleShuffle && (() => this.handleActionResult(plugin.toggleShuffle()))} iconUrl={status.shuffle ? iconUrls.shuffleOnIconUrl : iconUrls.shuffleOffIconUrl} /> : ''}
-            <Button title={'Previous'} click={plugin.previousTrack && (() => this.handleActionResult(plugin.previousTrack()))} iconUrl={iconUrls.previousIconUrl} />
-            <Button title={'Play/Pause'} style={{marginLeft: 6, marginRight: 6}} click={plugin.playPause && (() => this.handleActionResult(plugin.playPause()))} iconUrl={status.state === 'playing' ? iconUrls.pauseIconUrl : iconUrls.playIconUrl} />
-            <Button title={'Next'} click={plugin.nextTrack && (() => this.handleActionResult(plugin.nextTrack()))} iconUrl={iconUrls.nextIconUrl} />
-            { this.hyperMedia.shuffleRepeat ? <Button title={'Repeat'} style={{marginLeft: 6}} click={plugin.toggleRepeat && (() => this.handleActionResult(plugin.toggleRepeat()))} iconUrl={status.repeat === 'none' ? iconUrls.repeatOffIconUrl : (status.repeat === 'one' ? iconUrls.repeatOnceIconUrl : iconUrls.repeatOnIconUrl)} /> : ''}
+          { playerManager.plugins.length > 1 ? <Button title={plugin.playerName()} click={() => this.cyclePlugin()} iconUrl={plugin.iconUrl()} style={{ marginRight: 10 }} /> : ''}
+          { plugin.changeLibrary && <Button click={() => plugin.changeLibrary()} iconUrl={iconUrls.libraryIconUrl} style={{ marginRight: 10 }} />}
+          { this.hyperMedia.shuffleRepeat ? <Button title={'Shuffle'} style={{ marginRight: 6 }} click={plugin.toggleShuffle && (() => this.handleActionResult(plugin.toggleShuffle()))} iconUrl={status.shuffle ? iconUrls.shuffleOnIconUrl : iconUrls.shuffleOffIconUrl} /> : ''}
+          <Button title='Previous' click={plugin.previousTrack && (() => this.handleActionResult(plugin.previousTrack()))} iconUrl={iconUrls.previousIconUrl} />
+          <Button title='Play/Pause' style={{ marginLeft: 6, marginRight: 6 }} click={plugin.playPause && (() => this.handleActionResult(plugin.playPause()))} iconUrl={status.state === 'playing' ? iconUrls.pauseIconUrl : iconUrls.playIconUrl} />
+          <Button title='Next' click={plugin.nextTrack && (() => this.handleActionResult(plugin.nextTrack()))} iconUrl={iconUrls.nextIconUrl} />
+          { this.hyperMedia.shuffleRepeat ? <Button title={'Repeat'} style={{ marginLeft: 6 }} click={plugin.toggleRepeat && (() => this.handleActionResult(plugin.toggleRepeat()))} iconUrl={status.repeat === 'none' ? iconUrls.repeatOffIconUrl : (status.repeat === 'one' ? iconUrls.repeatOnceIconUrl : iconUrls.repeatOnIconUrl)} /> : ''}
           </div>
-          { status.state !== 'stopped' ? <TrackInfo status={status} /> : ''}
-          { this.hyperMedia.showArtwork && status.track && status.track.coverUrl && <img src={status.track.coverUrl} style={Object.assign(artworkStyle, { width: this.hyperMedia.artworkWidth || artworkStyle.width })} />}
+          { status.state !== State.Stopped ? <TrackInfo status={status} /> : ''}
+          { this.hyperMedia.showArtwork && status.track && status.track.coverUrl && <img src={status.track.coverUrl} style={artworkStyle} />}
         </div>
       }
 
-      return <div style={mediaBarStyle}>
-        <div style={buttonBlockStyle}>
-          <Button title={plugin.playerName()} click={() => this.cyclePlugin()} iconUrl={plugin.iconUrl()} style={{marginRight: 10}} />
+      return (
+        <div style={mediaBarStyle}>
+          <div style={buttonBlockStyle}>
+            <Button title={plugin.playerName()} click={() => this.cyclePlugin()} iconUrl={plugin.iconUrl()} style={{ marginRight: 10 }} />
+          </div>
         </div>
-      </div>
+      )
     }
 
-    handleActionResult (result) {
+    handleActionResult (result: any) {
       if (result instanceof Promise) {
-        result.then(status => {
+        result.then((status?: Status) => {
           if (!status) return
           this.setState({ status })
         }).catch(() => {
-          this.setState({ status: { isRunning: false } })
+          this.setState({ status: { isRunning: false, state: State.Stopped } })
         })
       }
     }
 
     cyclePlugin () {
       const {
-        playerManager,
-        playerManager:
-        {
-          config
-        }
+        playerManager
       } = this.props
 
       const {
@@ -111,10 +125,9 @@ const MediaBarFactory = React => {
         status
       } = this.state
 
-      // Only cycle if there's another plugin to switch to.
       if (playerManager.plugins.length <= 1) return
 
-      if (config.autoPause && status.isRunning && status.state === 'playing') {
+      if (this.hyperMedia.autoPause && status.isRunning && status.state === State.Playing) {
         plugin.playPause()
       }
 
@@ -124,14 +137,14 @@ const MediaBarFactory = React => {
   }
 }
 
-const artworkStyle = {
+const artworkStyle: ExternReact.CSSProperties = {
   width: '10%',
   position: 'fixed',
   right: 15,
   bottom: 25
 }
 
-const mediaBarStyle = {
+const mediaBarStyle: ExternReact.CSSProperties = {
   height: 30,
   fontSize: 12,
   display: 'flex',
@@ -140,11 +153,11 @@ const mediaBarStyle = {
   alignItems: 'center'
 }
 
-const buttonBlockStyle = {
+const buttonBlockStyle: ExternReact.CSSProperties = {
   display: 'flex',
-  'flex-direction': 'row',
-  'justify-content': 'space-around',
-  'align-items': 'center',
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  alignItems: 'center',
   marginRight: 6
 }
 
@@ -161,4 +174,4 @@ const iconUrls = {
   libraryIconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAnXwAAJ18BHYa6agAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAJnSURBVHic7Zu/SxxBFMc/l1PBUhIIYhptLcSoRUohTSoLExsrC0uxCzYRIghWluY/EGKsQiBNtLYKeDYBxaQLsVDQQtBELeYIp86Ezd2b9+bY+cAgzO6+/c6XnV/vRshkMpkSUxGMVQUmgHHgsWDcZrgEvgMfgF2NFw7UX3SdWLkC1oDOeE2HHuAwgcb+q7yL1npgOYEGFvkShnziHwgYMCkQIzYVAjolDOgXiKHBgK9SwoAugRgaeHVKGNDWdFgLCLAK7BS8d6OVF6VqwA5uEROd0neBkAEb3J9LW/rUUqX0X0CqY0Ajr2IGbwcDona90neBbIC1AGuyAdYCrCm9AdbT4DGwB5wAvcBTIufv7mJlwD6wAHwEfjfU9wBzwLmWEAsDvuDSU6eeayfAkqYY7TFgn3DjTdA2YIGEGg+6Bhzj+nxSaBqwy+0BLwk0DThr4pnoGWdNA3qbeKZPXMUdNA0YBh7+5zPPYwhpRNOADtwipyhVYD6Slr9oT4OvgdGC9y4CgxG1APoGdAOfcYcoQlSBt8AbDUEWu8FHwBbwHniBO03ShfuRdRY3XS4ie3oliNVmqAJM1Ysppc8HSBhwLRBDA69OCQOOBGJo8MtXKWHAtkAMDbZ8lRIGrAAXAnFi8hX45LsgYUANmCFdEw5wSZg/votSs8A6MFb/+1MoZitcAN9w6bUR4EfoRsl1QA2YFoynQl4HWAuwJhtgLcCa0CB46al7RpoHpVraUIUMOPTUPSHyeR0LQl1gk/bZ5ERjDftz/kVKNDpx/2lxlUAjoxlQJO00BLzEpaxSPBpvnlXKZDKZtuUGwhAPcYCvUfsAAAAASUVORK5CYII='
 }
 
-export default MediaBarFactory
+export { MediaBarFactory, MediaBarProps, MediaBarState }

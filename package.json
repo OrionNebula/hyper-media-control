@@ -1,13 +1,13 @@
 {
   "name": "hyper-media-control",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Extensible media player controller for Hyper.",
   "main": "dist/index.js",
   "scripts": {
-    "lint": "standard ./src/**.js | snazzy",
+    "lint": "tslint ./src/**.ts",
     "prebuild": "npm run lint && rimraf ./dist",
-    "build": "babel src -d dist",
-    "build:watch": "babel src -d dist --watch",
+    "build": "tsc",
+    "watch:build": "tsc --watch",
     "prepublishonly": "npm run build"
   },
   "repository": {
@@ -22,14 +22,17 @@
   "author": "Olivia Trewin",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^10.1.4",
+    "@types/react": "^16.3.14",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
     "rimraf": "^2.6.2",
-    "snazzy": "^7.1.1",
-    "standard": "^11.0.1"
+    "tsc": "^1.20150623.0",
+    "tslint": "^5.10.0",
+    "tslint-config-standard": "^7.0.0",
+    "typescript": "^2.8.3"
   },
   "dependencies": {
-    "hyper-plugin-extend": "1.0.0"
+    "hyper-plugin-extend": "^1.1.1"
   }
 }
