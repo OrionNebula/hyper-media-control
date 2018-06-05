@@ -1,7 +1,9 @@
 import { registerParentPlugin, getSubPlugins } from 'hyper-plugin-extend'
 import { PlayerManager } from './PlayerManager'
 import { HyperMediaConfig } from './types/HyperMediaConfig'
-import { MediaPluginConstructor } from './types/MediaPlugin'
+import { MediaPluginConstructor, MediaPlugin } from './types/MediaPlugin'
+import { State } from './types/State'
+import { Status } from './types/Status'
 import { FooterFactory } from './components/Footer'
 import * as ExternReact from 'react'
 
@@ -116,4 +118,17 @@ function decorateMenu (menu) {
   })
 }
 
-export { onRendererWindow, decorateHyper, decorateConfig, reduceUI, mapHyperState, decorateMenu }
+export {
+  onRendererWindow,
+  decorateHyper,
+  decorateConfig,
+  reduceUI,
+  mapHyperState,
+  decorateMenu,
+  // Exports for dependencies
+  PlayerManager,
+  MediaPlugin,
+  HyperMediaConfig,
+  State,
+  Status
+}
