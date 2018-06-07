@@ -7,6 +7,7 @@ import { MediaPlugin } from '../types/MediaPlugin'
 import { Status } from '../types/Status'
 import { State } from '../types/State'
 import { EventEmitter } from 'events'
+import '../types/Rpc'
 
 interface MediaBarProps {
   playerManager: PlayerManager
@@ -40,24 +41,23 @@ function MediaBarFactory (React: typeof ExternReact) {
 
     componentDidMount () {
       const { playerManager } = this.props
-      const { rpc }: { rpc: EventEmitter } = window as any
 
-      rpc.on('hyper-media-control:previousTrack', () => {
+      window.rpc.on('hyper-media-control:previousTrack', () => {
         const { plugin } = this.state
         if (plugin) this.handleActionResult(plugin.previousTrack())
       })
 
-      rpc.on('hyper-media-control:playPause', () => {
+      window.rpc.on('hyper-media-control:playPause', () => {
         const { plugin } = this.state
         if (plugin) this.handleActionResult(plugin.playPause())
       })
 
-      rpc.on('hyper-media-control:nextTrack', () => {
+      window.rpc.on('hyper-media-control:nextTrack', () => {
         const { plugin } = this.state
         if (plugin) this.handleActionResult(plugin.nextTrack())
       })
 
-      rpc.on('hyper-media-control:nextPlayer', () => {
+      window.rpc.on('hyper-media-control:nextPlayer', () => {
         this.cyclePlugin()
       })
 

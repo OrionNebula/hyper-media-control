@@ -5,6 +5,7 @@ import { MediaPluginConstructor, MediaPlugin } from './types/MediaPlugin'
 import { State } from './types/State'
 import { Status } from './types/Status'
 import { FooterFactory } from './components/Footer'
+import './types/Rpc'
 import * as ExternReact from 'react'
 
 const parentPluginName = 'hyper-media-control'
@@ -80,7 +81,7 @@ function decorateMenu (menu) {
         submenu: [
           {
             label: 'Previous Track',
-            click: (clickedItem, focusedWindow) => {
+            click: (clickedItem, focusedWindow: Window) => {
               if (focusedWindow) {
                 focusedWindow.rpc.emit('hyper-media-control:previousTrack', { focusedWindow })
               }
@@ -89,7 +90,7 @@ function decorateMenu (menu) {
           {
             label: 'Play/Pause',
             accelerator: `CmdOrCtrl+Alt+Space`,
-            click: (clickedItem, focusedWindow) => {
+            click: (clickedItem, focusedWindow: Window) => {
               if (focusedWindow) {
                 focusedWindow.rpc.emit('hyper-media-control:playPause', { focusedWindow })
               }
@@ -97,7 +98,7 @@ function decorateMenu (menu) {
           },
           {
             label: 'Next Track',
-            click: (clickedItem, focusedWindow) => {
+            click: (clickedItem, focusedWindow: Window) => {
               if (focusedWindow) {
                 focusedWindow.rpc.emit('hyper-media-control:nextTrack', { focusedWindow })
               }
@@ -106,7 +107,7 @@ function decorateMenu (menu) {
           {
             label: 'Next Media Player',
             accelerator: `CmdOrCtrl+Shift+Space`,
-            click: (clickedItem, focusedWindow) => {
+            click: (clickedItem, focusedWindow: Window) => {
               if (focusedWindow) {
                 focusedWindow.rpc.emit('hyper-media-control:nextPlayer', { focusedWindow })
               }
