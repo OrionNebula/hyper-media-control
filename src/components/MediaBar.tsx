@@ -89,7 +89,7 @@ function MediaBarFactory (React: typeof ExternReact) {
           <Button title='Next' click={plugin.nextTrack && (() => this.handleActionResult(plugin.nextTrack()))} iconUrl={iconUrls.nextIconUrl} />
           { this.hyperMedia.shuffleRepeat ? <Button title={'Repeat'} style={{ marginLeft: 6 }} click={plugin.toggleRepeat && (() => this.handleActionResult(plugin.toggleRepeat()))} iconUrl={status.repeat === 'none' ? iconUrls.repeatOffIconUrl : (status.repeat === 'one' ? iconUrls.repeatOnceIconUrl : iconUrls.repeatOnIconUrl)} /> : ''}
           </div>
-          { status.state !== State.Stopped ? <TrackInfo status={status} /> : ''}
+          { status.state !== State.Stopped && status.track ? <TrackInfo status={status} /> : ''}
           { this.hyperMedia.showArtwork && status.track && status.track.coverUrl && <img src={status.track.coverUrl} style={artworkStyle} />}
         </div>
       }

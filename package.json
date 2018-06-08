@@ -1,6 +1,6 @@
 {
   "name": "hyper-media-control",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Extensible media player controller for Hyper.",
   "main": "dist/index",
   "typings": "dist/index",
