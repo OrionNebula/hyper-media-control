@@ -6,7 +6,6 @@ import { HyperMediaConfig } from '../types/HyperMediaConfig'
 import { MediaPlugin } from '../types/MediaPlugin'
 import { Status } from '../types/Status'
 import { State } from '../types/State'
-import { EventEmitter } from 'events'
 import '../types/Rpc'
 
 interface MediaBarProps {
@@ -36,7 +35,7 @@ function MediaBarFactory (React: typeof ExternReact) {
         status: { isRunning: false, state: State.Stopped }
       }
 
-      this.props.playerManager.currentPlugin.on('status', (status: Status) => this.setState({ status }))
+      this.props.playerManager.currentPlugin.on('status', status => this.setState({ status }))
     }
 
     componentDidMount () {
@@ -44,30 +43,30 @@ function MediaBarFactory (React: typeof ExternReact) {
 
       window.rpc.on('hyper-media-control:previousTrack', () => {
         const { plugin } = this.state
-        if (plugin) this.handleActionResult(plugin.previousTrack())
+        if (plugin && plugin.previousTrack) this.handleActionResult(plugin.previousTrack())
       })
 
       window.rpc.on('hyper-media-control:playPause', () => {
         const { plugin } = this.state
-        if (plugin) this.handleActionResult(plugin.playPause())
+        if (plugin && plugin.playPause) this.handleActionResult(plugin.playPause())
       })
 
       window.rpc.on('hyper-media-control:nextTrack', () => {
         const { plugin } = this.state
-        if (plugin) this.handleActionResult(plugin.nextTrack())
+        if (plugin && plugin.nextTrack) this.handleActionResult(plugin.nextTrack())
       })
 
       window.rpc.on('hyper-media-control:nextPlayer', () => {
         this.cyclePlugin()
       })
 
-      playerManager.on('newPlugin', (newPlugin: MediaPlugin) => {
+      playerManager.on('newPlugin', newPlugin => {
         this.setState({ plugin: newPlugin, status: { isRunning: false, state: State.Stopped } })
-        newPlugin.on('status', (status: Status) => {
+        newPlugin.on('status', status => {
           const { plugin } = this.state
           if (this.newLoad && this.hyperMedia.autoResume && status.isRunning && status.track && status.track.name) {
             this.newLoad = false
-            if (status.state !== State.Playing) this.handleActionResult(plugin.playPause())
+            if (status.state !== State.Playing && plugin && plugin.playPause) this.handleActionResult(plugin.playPause())
           }
           this.setState({ status })
         })
@@ -82,12 +81,12 @@ function MediaBarFactory (React: typeof ExternReact) {
         return <div style={mediaBarStyle}>
           <div style={buttonBlockStyle}>
           { playerManager.plugins.length > 1 ? <Button title={plugin.playerName()} click={() => this.cyclePlugin()} iconUrl={plugin.iconUrl()} style={{ marginRight: 10 }} /> : ''}
-          { plugin.changeLibrary && <Button click={() => plugin.changeLibrary()} iconUrl={iconUrls.libraryIconUrl} style={{ marginRight: 10 }} />}
-          { this.hyperMedia.shuffleRepeat ? <Button title={'Shuffle'} style={{ marginRight: 6 }} click={plugin.toggleShuffle && (() => this.handleActionResult(plugin.toggleShuffle()))} iconUrl={status.shuffle ? iconUrls.shuffleOnIconUrl : iconUrls.shuffleOffIconUrl} /> : ''}
-          <Button title='Previous' click={plugin.previousTrack && (() => this.handleActionResult(plugin.previousTrack()))} iconUrl={iconUrls.previousIconUrl} />
-          <Button title='Play/Pause' style={{ marginLeft: 6, marginRight: 6 }} click={plugin.playPause && (() => this.handleActionResult(plugin.playPause()))} iconUrl={status.state === 'playing' ? iconUrls.pauseIconUrl : iconUrls.playIconUrl} />
-          <Button title='Next' click={plugin.nextTrack && (() => this.handleActionResult(plugin.nextTrack()))} iconUrl={iconUrls.nextIconUrl} />
-          { this.hyperMedia.shuffleRepeat ? <Button title={'Repeat'} style={{ marginLeft: 6 }} click={plugin.toggleRepeat && (() => this.handleActionResult(plugin.toggleRepeat()))} iconUrl={status.repeat === 'none' ? iconUrls.repeatOffIconUrl : (status.repeat === 'one' ? iconUrls.repeatOnceIconUrl : iconUrls.repeatOnIconUrl)} /> : ''}
+          { plugin.changeLibrary && <Button click={() => plugin.changeLibrary && plugin.changeLibrary()} iconUrl={iconUrls.libraryIconUrl} style={{ marginRight: 10 }} />}
+          { this.hyperMedia.shuffleRepeat ? <Button title={'Shuffle'} style={{ marginRight: 6 }} click={plugin.toggleShuffle && (() => plugin.toggleShuffle && this.handleActionResult(plugin.toggleShuffle()))} iconUrl={status.shuffle ? iconUrls.shuffleOnIconUrl : iconUrls.shuffleOffIconUrl} /> : ''}
+          <Button title='Previous' click={plugin.previousTrack && (() => plugin.previousTrack && this.handleActionResult(plugin.previousTrack()))} iconUrl={iconUrls.previousIconUrl} />
+          <Button title='Play/Pause' style={{ marginLeft: 6, marginRight: 6 }} click={plugin.playPause && (() => plugin.playPause && this.handleActionResult(plugin.playPause()))} iconUrl={status.state === 'playing' ? iconUrls.pauseIconUrl : iconUrls.playIconUrl} />
+          <Button title='Next' click={plugin.nextTrack && (() => plugin.nextTrack && this.handleActionResult(plugin.nextTrack()))} iconUrl={iconUrls.nextIconUrl} />
+          { this.hyperMedia.shuffleRepeat ? <Button title={'Repeat'} style={{ marginLeft: 6 }} click={plugin.toggleRepeat && (() => plugin.toggleRepeat && this.handleActionResult(plugin.toggleRepeat()))} iconUrl={status.repeat === 'none' ? iconUrls.repeatOffIconUrl : (status.repeat === 'one' ? iconUrls.repeatOnceIconUrl : iconUrls.repeatOnIconUrl)} /> : ''}
           </div>
           { status.state !== State.Stopped && status.track ? <TrackInfo status={status} /> : ''}
           { this.hyperMedia.showArtwork && status.track && status.track.coverUrl && <img src={status.track.coverUrl} style={artworkStyle} />}
@@ -103,9 +102,9 @@ function MediaBarFactory (React: typeof ExternReact) {
       )
     }
 
-    handleActionResult (result: any) {
+    handleActionResult (result: void | Promise<void | Status>) {
       if (result instanceof Promise) {
-        result.then((status?: Status) => {
+        result.then((status: Status | void) => {
           if (!status) return
           this.setState({ status })
         }).catch(() => {
@@ -126,7 +125,7 @@ function MediaBarFactory (React: typeof ExternReact) {
 
       if (playerManager.plugins.length <= 1) return
 
-      if (this.hyperMedia.autoPause && status.isRunning && status.state === State.Playing) {
+      if (this.hyperMedia.autoPause && status.isRunning && status.state === State.Playing && plugin.playPause) {
         plugin.playPause()
       }
 

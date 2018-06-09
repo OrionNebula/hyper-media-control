@@ -10,6 +10,9 @@
         ],
         "declaration": true,
         "outDir": "dist",
-        "allowJs": false
+        "allowJs": false,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "noImplicitAny": true
     }
 }

@@ -16,7 +16,7 @@ interface BackgroundState {
 
 function BackgroundFactory (React: typeof ExternReact) {
   return class extends React.Component<BackgroundProps, BackgroundState> {
-    constructor (props) {
+    constructor (props: BackgroundProps) {
       super(props)
 
       const { playerManager } = this.props
@@ -26,15 +26,15 @@ function BackgroundFactory (React: typeof ExternReact) {
         playlist: []
       }
 
-      playerManager.currentPlugin.on('playlist', (playlist: Track[]) => this.setState({ playlist }))
+      playerManager.currentPlugin.on('playlist', playlist => this.setState({ playlist }))
     }
 
     componentDidMount () {
       const { playerManager } = this.props
 
-      playerManager.on('newPlugin', (newPlugin: MediaPlugin) => {
+      playerManager.on('newPlugin', newPlugin => {
         this.setState({ plugin: newPlugin, playlist: [] })
-        newPlugin.on('playlist', (playlist: Track[]) => {
+        newPlugin.on('playlist', playlist => {
           this.setState({ playlist })
         })
       })

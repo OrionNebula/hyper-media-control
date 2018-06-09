@@ -1,7 +1,7 @@
 import * as ExternReact from 'react'
 
 interface ButtonProps {
-  click: (event: ExternReact.MouseEvent<HTMLDivElement>) => void
+  click?: (event: ExternReact.MouseEvent<HTMLDivElement>) => void
   iconUrl: string
   style?: ExternReact.CSSProperties
   title?: string

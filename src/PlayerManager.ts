@@ -2,6 +2,12 @@ import { EventEmitter } from 'events'
 import { HyperMediaConfig, defaultHyperMediaConfig } from './types/HyperMediaConfig'
 import { MediaPlugin, MediaPluginConstructor } from './types/MediaPlugin'
 
+export interface PlayerManager {
+  on (event: 'newPlugin', listener: (plugin: MediaPlugin) => void): this
+  once (event: 'newPlugin', listener: (plugin: MediaPlugin) => void): this
+  emit (event: 'newPlugin', plugin: MediaPlugin): boolean
+}
+
 export class PlayerManager extends EventEmitter {
   config: HyperMediaConfig
   plugins: MediaPlugin[]
@@ -11,7 +17,7 @@ export class PlayerManager extends EventEmitter {
     super()
     this.config = { ...defaultHyperMediaConfig, ...config }
     this.plugins = []
-    pluginClasses.forEach((PluginClass: MediaPluginConstructor) => {
+    pluginClasses.forEach(PluginClass => {
       let obj = new PluginClass(this, config)
       if (this.validatePlugin(obj)) {
         this.plugins.push(obj)
@@ -41,7 +47,7 @@ export class PlayerManager extends EventEmitter {
     this.emit('newPlugin', newPlugin)
   }
 
-  validatePlugin (pluginObject: MediaPlugin): boolean {
+  validatePlugin (mediaPlugin: MediaPlugin): boolean {
     const requiredFunctions = [
       'playerName',
       'iconUrl',
@@ -50,9 +56,7 @@ export class PlayerManager extends EventEmitter {
     ]
 
     for (let i = 0; i < requiredFunctions.length; i++) {
-      if (!((pluginObject[requiredFunctions[i]]) instanceof Function)) {
-        return false
-      }
+      if (!(requiredFunctions[i] in mediaPlugin)) return false
     }
 
     return true

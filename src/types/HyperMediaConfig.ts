@@ -1,5 +1,5 @@
 export interface HyperMediaConfig {
-  default: string
+  default?: string
   showArtwork: boolean
   autoPause: boolean
   autoResume: boolean
@@ -7,7 +7,6 @@ export interface HyperMediaConfig {
 }
 
 export const defaultHyperMediaConfig: HyperMediaConfig = {
-  default: undefined,
   showArtwork: true,
   autoPause: false,
   autoResume: false,
